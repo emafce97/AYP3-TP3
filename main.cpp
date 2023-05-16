@@ -1,100 +1,131 @@
-#include <stdlib.h>
-#include <stdio.h>
+#include <iostream>
 
 typedef struct Nodo{
     int valor;
-    Nodo *next;
+    Nodo *sgte;
 }Nodo;
 
+typedef struct Lista{
+    Nodo *cabeza;
+    int cantElementos;
+}Lista;
+
+/*
+ * Crea una instancia de lista
+ */
+Lista crearLista(){
+    Lista lista;
+    lista.cabeza = NULL;
+    lista.cantElementos = 0;
+    return lista;
+}
+
+/*
+ * Crea una instancia de Nodo
+ */
 Nodo *crearNodo(int valor){
-    Nodo *nodo;
-    nodo = (Nodo*)malloc(sizeof(Nodo));
-    nodo->valor=valor;
-    nodo->next=NULL;
+    Nodo *nodo = (Nodo*)malloc(sizeof(Nodo));
+    nodo->valor = valor;
+    nodo->sgte = NULL;
     return nodo;
 }
 
-void agregarElemento(Nodo **lista, int valor) {
-    Nodo *nodoNuevo = crearNodo(valor);
-    if (*lista == NULL) {
-        *lista = nodoNuevo;
-    } else {
-        Nodo *cursor = *lista;
-        while (cursor->next != NULL) {
-            cursor = cursor->next;
+/*
+ * Añade un elemento de manera secuencial
+ */
+void añadirElemento(Lista *lista,Nodo **cabeza, int valor){
+    Nodo *nuevo = crearNodo(valor);
+    if(*cabeza == NULL){
+        *cabeza = nuevo;
+    }else{
+        Nodo *puntero = *cabeza;
+        while(puntero->sgte != NULL){
+            puntero = puntero->sgte;
         }
-        cursor->next = nodoNuevo;
+        puntero->sgte = nuevo;
     }
+    lista->cantElementos++;
 }
 
-Nodo *buscarElemento(Nodo **lista, int valor){
-    Nodo *cursor = *lista;
-    while(cursor != NULL){
-        if(cursor->valor == valor){
-            return cursor;
+/*
+ * Imprime la lista mostrando los elementos
+ */
+void imprimirLista(Nodo **cabeza){
+    Nodo *puntero = *cabeza;
+    printf("[");
+    while(puntero != NULL){
+        if(puntero->sgte == NULL){
+            printf("%d",puntero->valor);
         }else{
-            cursor = cursor->next;
+            printf("%d, ",puntero->valor);
+        }
+        puntero = puntero->sgte;
+    }
+    printf("]\n");
+}
+
+/*
+ * Busca si algun nodo tiene el valor buscado
+ * El metodo retorna un puntero, la referencia de memoria del nodo
+ */
+Nodo *buscarElemento(Nodo **cabeza,int valor_buscado){
+    Nodo *puntero = *cabeza;
+    if(*cabeza == NULL){
+        printf("ERROR: La lista esta vacia!");
+    }else{
+        while(puntero != NULL){
+            if(puntero->valor == valor_buscado){
+                return puntero;
+            }else{
+                puntero = puntero->sgte;
+            }
         }
     }
     return NULL;
 }
 
-void eliminarElemento(Nodo **lista, int valor){
-    if(*lista == NULL){
-        printf("La lista esta vacia!");
-    }
-    else if(buscarElemento(lista,valor) == NULL){
-        printf("El valor no esta en la lista!");
+/*
+ * Retorna la cantidad de elementos en la lista
+ */
+int contarElementos(Lista *lista){
+    return lista->cantElementos;
+}
+
+/*
+ * Elimina un elemento de la lista
+ */
+void eliminarElemento(Nodo **cabeza,int valor_eliminar){
+    if(buscarElemento(cabeza,valor_eliminar) == NULL){
+        printf("El elemento no esta en la lista!");
     }else{
-        Nodo *cursor = *lista;
-        while(cursor != NULL){
-          if(cursor->next->valor == valor){
-              //Nodo * aux = cursor->next;
-              *lista = cursor->next->next;
-          }
-          cursor = cursor->next;
+        Nodo *cursor = *cabeza;
+        while(cursor->sgte != NULL){
+            if(cursor->sgte->valor == valor_eliminar){
+                Nodo *aux = cursor->sgte->sgte;
+                free(cursor->sgte);
+                cursor->sgte=aux;
+            }else{
+                cursor = cursor->sgte;
+            }
         }
     }
-
 }
 
-int contarElementos(Nodo **lista){
-    int i=0;
-    Nodo *cursor = *lista;
-    while(cursor != NULL){
-        i++;
-        cursor = cursor->next;
-    }
-    return i;
-}
-
-void mostrarElementos(Nodo **lista){
-    Nodo *cursor = *lista;
-    while(cursor != NULL){
-        printf("%d, ",cursor->valor);
-        cursor = cursor->next;
-    }
-}
-
-int main(){
-    Nodo *lista = NULL;
-
-    agregarElemento(&lista, 5);
-    agregarElemento(&lista, 3);
-    agregarElemento(&lista, 9);
-    agregarElemento(&lista, 6);
-
-    int i = contarElementos(&lista);
-    printf("La cantidad de elementos de la lista es: %d\n",i);
-
-    Nodo *nodo = buscarElemento(&lista,5);
-    printf("El valor 5 esta en el nodo: %p\n",nodo);
-
-    Nodo *nodo_2 = buscarElemento(&lista,6);
-    printf("El valor 6 esta en el nodo: %p\n",nodo_2);
-
-    mostrarElementos(&lista);
-    eliminarElemento(&lista,9);
-    mostrarElementos(&lista);
-
+int main() {
+    Lista lista = crearLista();
+    Nodo *cabeza = lista.cabeza;
+    añadirElemento(&lista,&cabeza,3);
+    añadirElemento(&lista,&cabeza,2);
+    añadirElemento(&lista,&cabeza,1);
+    añadirElemento(&lista,&cabeza,4);
+    añadirElemento(&lista,&cabeza,-99);
+    añadirElemento(&lista,&cabeza,-200);
+    printf("La lista tiene %d elementos\n", contarElementos(&lista));
+    imprimirLista(&cabeza);
+    printf("El nodo con valor 1 tiene la dic de memoria %p\n", buscarElemento(&cabeza,1));
+    eliminarElemento(&cabeza,1);
+    imprimirLista(&cabeza);
+    eliminarElemento(&cabeza,-200);
+    imprimirLista(&cabeza);
+    return 0;
 }
